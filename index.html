@@ -2,42 +2,54 @@
 <html>
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE-Edge">
-		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+		<!-- charset cambiado a utf-8 para evitar complicaciones con caracteres especiales -->
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<!-- Se añade el css de bootstrap para dar un poco de estilo a los componentes -->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
 		<title>Mi Pagina Web</title>
 	</head>
 	<body>
 		
-		<form method="POST" action="" >
-		    <div>
-		    	<div>
-		    		<label style="margin: 5px;">Region:</label>
-		    		<label id="idRegion" style="margin-right:20px;"></label>
-		    		<label style="margin: 5px;">IP:</label>
-		    		<label id="idIp" style="margin-right: 20px;"></label>
-		    	</div>
-		    	<div style="margin: 10px;">
-			    	<button type="button" id="btnMandarCall" name="btnMandarCall" onclick="CallApiRest()">
-						<i >Consumir Servicio php</i>
-			        </button>	        
-			        <input type="hidden" name="nombreArchivo" value="Respuesta1">
-			        <!-- <button type="submit"><i>Exportar JSON</i></button> -->
-		        </div> 
-		        <div>                                 
-		            <table class="table">
-		            	<thead>
-		            		<tr>
-		            			<td class="encabezado">Tipo</td>
-		            			<td class="encabezado">Color</td>
-		            			<td class="encabezado">Tama&#241;o</td>
-		            		</tr>
-		            	</thead>
-		            	<tbody id="filaRespuesta">
-		            		
-		            	</tbody>
-		            </table>
-		        </div>
-		    </div>
-		</form>
+		<div class="container">
+			<form method="POST" action="" >
+				
+				<div class="row">
+					<div class="col-sm-12">
+						<label style="margin: 5px;">Region:</label>
+						<label id="idRegion" style="margin-right:20px;"></label>
+						<label style="margin: 5px;">IP:</label>
+						<label id="idIp" style="margin-right: 20px;"></label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div style="margin: 10px;" class="col-sm-12">
+						<button type="button" id="btnMandarCall" name="btnMandarCall" class="btn btn-secondary" onclick="callApiRest()">
+							<i >Consumir Servicio php</i>
+						</button>	        
+						<input type="hidden" name="nombreArchivo" value="Respuesta1">
+						<!-- <button type="submit"><i>Exportar JSON</i></button> -->
+					</div> 
+				</div>
+				<div class="row">
+					<div class="col-sm-12">                                 
+						<table class="table table-hover table-striped">
+							<thead class="thead-dark">
+								<tr>
+									<!-- td cambiado por th -->
+									<th class="encabezado">Tipo</th>
+									<th class="encabezado">Color</th>
+									<th class="encabezado">Tamaño</th>
+								</tr>
+							</thead>
+							<tbody id="filaRespuesta">
+								<tr><td colspan='3' class='filas text-center'><b>Sin registros!</b> Utilice el botón para consumir servicio.</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</form>
+		</div>
 	<input type="hidden" id="ruta" name="num_mesero" value="<?php echo $Server; ?>">
 	</body>
 	<style>
@@ -64,13 +76,14 @@
 </html>
 <script>
 
-	CallApiIp();
+	// Nombre cambiado a camelCase por convencion.
+	callApiIp();
 
-	function CallApiIp(){
+	function callApiIp(){
 
 		rRegion = "";
 		rIp = "";
-		var requestOptions = {
+		let requestOptions = {
 		  method: 'GET',
 		  redirect: 'follow'
 		};
@@ -86,16 +99,39 @@
 		  .catch(error => console.log('error', error));
 	}
 
-	function CallApiRest()
+	// Nombre cambiado a camelCase por convencion.
+	function callApiRest()
 	{
-		FilasRespuesta = "";
+		// Nombre cambiado a camelCase por convencion.
+		filasRespuesta = "";
+		// Se añade opciones de request
+		let requestOptions = {
+		  method: 'GET'
+		};
 
-		FilasRespuesta 	+= 	"<tr>" +
-		        				"<td class = 'filas'>avion</td>" +
-		            			"<td class = 'filas'>grande</td>" +
-		            			"<td class = 'filas'>verde</td>" +
-		            		"</tr>";
-	    document.querySelector("#filaRespuesta").innerHTML = FilasRespuesta;
+		// Se añade fetch para consumir el servicio
+		fetch("http://localhost/evaluacion_desarrollador_servicio_4_1/", requestOptions)
+		  .then(response => response.json())
+		  .then(result => {
+			// Se forma contenido de tabla solo si listaobjetos esta definido y length mayor a cero
+			if(typeof result.listaobjetos !== 'undefined' && result.listaobjetos.length > 0){
+				let registros = result.listaobjetos;
+				
+				// Se utiliza forEach y template literals para formar las lineas de la tabla
+				registros.forEach(reg => {
+					filasRespuesta 	+= 	`<tr>
+		        				<td class = 'filas'>${reg.tipo}</td>
+		            			<td class = 'filas'>${reg.tamanio}</td>
+		            			<td class = 'filas'>${reg.color}</td>
+		            		</tr>`;
+				});
+			} else{
+				// Se añade linea en caso de que no se encuentren registros.
+				filasRespuesta 	+= 	"<tr><td colspan='3' class='filas'>No se encontró información</td></tr>";
+			}
 
+			document.querySelector("#filaRespuesta").innerHTML = filasRespuesta;
+		  })
+		  .catch(error => console.log('error', error));
 	}
 </script> 
